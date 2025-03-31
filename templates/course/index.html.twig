@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Курсы{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Список курсов</h1>
+
+        <div class="row">
+            {% for course in courses %}
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h2 class="card-title">{{ course.title }}</h2>
+                            <p class="card-text">{{ course.description }}</p>
+
+                            <h5>Уроки:</h5>
+                            <ul class="list-group">
+                                {% for lesson in course.lessons %}
+                                    <li class="list-group-item">
+                                        <strong>{{ lesson.title }}</strong>: {{ lesson.content }}
+                                    </li>
+                                {% else %}
+                                    <li class="list-group-item text-muted">Уроков пока нет.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-center">Курсы не найдены.</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
