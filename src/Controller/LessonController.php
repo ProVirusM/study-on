@@ -2,8 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Course;
 use App\Entity\Lesson;
-use App\Form\Lesson1Type;
+use App\Form\LessonType;
 use App\Repository\LessonRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,22 +23,25 @@ final class LessonController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'app_lesson_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/new/{course}', name: 'app_lesson_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager, Course $course): Response
     {
         $lesson = new Lesson();
-        $form = $this->createForm(Lesson1Type::class, $lesson);
+        $lesson->setCourse($course);
+
+        $form = $this->createForm(LessonType::class, $lesson, ['course' => $course, 'require_course' => true,]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($lesson);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_lesson_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('lesson/new.html.twig', [
             'lesson' => $lesson,
+            'course' => $course,
             'form' => $form,
         ]);
     }
@@ -47,35 +51,45 @@ final class LessonController extends AbstractController
     {
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,
+            'course' => $lesson->getCourse(),
         ]);
     }
 
     #[Route('/{id}/edit', name: 'app_lesson_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Lesson $lesson, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(Lesson1Type::class, $lesson);
+        $form = $this->createForm(LessonType::class, $lesson);
         $form->handleRequest($request);
+
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_lesson_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_lesson_show', ['id' => $lesson->getId()], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('lesson/edit.html.twig', [
             'lesson' => $lesson,
+            'course' => $lesson->getCourse(),
             'form' => $form,
         ]);
     }
 
     #[Route('/{id}', name: 'app_lesson_delete', methods: ['POST'])]
-    public function delete(Request $request, Lesson $lesson, EntityManagerInterface $entityManager): Response
-    {
+    public function delete(
+        Request $request,
+        Lesson $lesson,
+        EntityManagerInterface $entityManager
+    ): Response {
         if ($this->isCsrfTokenValid('delete'.$lesson->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($lesson);
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('app_lesson_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute(
+            'app_course_show',
+            ['id' => $lesson->getCourse()->getId()],
+            Response::HTTP_SEE_OTHER
+        );
     }
 }

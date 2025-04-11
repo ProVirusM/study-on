@@ -20,6 +20,11 @@ migrate:
 
 fixtload:
 	@$(CONSOLE) doctrine:fixtures:load
-
+encore_dev:
+	@${COMPOSE} run node yarn encore dev
+phpunit:
+	@${PHP} bin/phpunit
+encore_prod:
+	@${COMPOSE} run node yarn encore production
 # Подключение локального Makefile (если есть)
 -include local.mk

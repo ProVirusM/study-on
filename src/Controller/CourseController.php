@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Course;
-use App\Form\Course1Type;
+use App\Form\CourseType;
 use App\Repository\CourseRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/course')]
+#[Route('/courses')]
 final class CourseController extends AbstractController
 {
     #[Route(name: 'app_course_index', methods: ['GET'])]
@@ -26,7 +26,7 @@ final class CourseController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $course = new Course();
-        $form = $this->createForm(Course1Type::class, $course);
+        $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -47,19 +47,20 @@ final class CourseController extends AbstractController
     {
         return $this->render('course/show.html.twig', [
             'course' => $course,
+            'lessons' => $course->getLessons(),
         ]);
     }
 
     #[Route('/{id}/edit', name: 'app_course_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Course $course, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(Course1Type::class, $course);
+        $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_course_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('course/edit.html.twig', [

@@ -1,11 +1,24 @@
-<!DOCTYPE html>
-
-<title>New Course</title>
+{% extends 'base.html.twig' %}
 
 {% block body %}
-    <h1>Create new Course</h1>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h1 class="h4 mb-0">Создание нового курса</h1>
+                    </div>
+                    <div class="card-body">
+                        {{ include('course/_form.html.twig') }}
 
-    {{ include('course/_form.html.twig') }}
-
-    <a href="{{ path('app_course_index') }}">back to list</a>
+                        <div class="mt-3">
+                            <a href="{{ path('app_course_index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Вернуться к списку
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

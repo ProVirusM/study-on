@@ -59,13 +59,13 @@ class LessonType extends AbstractType
                 ],
             ])
             ->add('course', HiddenType::class, [
-                'data' => $options['course']->getId(),
+                'data' => $options['course'] ? $options['course']->getId() : null,
                 'mapped' => false,
-                'constraints' => [
-                    new NotNull([
-                        'message' => 'Курс не указан',
-                    ]),
-                ],
+                'constraints' => $options['require_course'] ? [
+//                    new NotNull([
+//                        'message' => 'Курс не указан',
+//                    ]),
+                ] : [],
             ])
 
         ;
@@ -76,6 +76,7 @@ class LessonType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Lesson::class,
             'course' => null,
+            'require_course' => true,
         ]);
     }
 }

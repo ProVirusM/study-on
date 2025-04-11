@@ -1,34 +1,53 @@
-<!DOCTYPE html>
-
-<title>Course</title>
+{% extends 'base.html.twig' %}
 
 {% block body %}
-    <h1>Course</h1>
+    <div class="container mt-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h1 class="h3 mb-0">{{ course.title }}</h1>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ course.description }}</p>
+            </div>
+        </div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ course.id }}</td>
-            </tr>
-            <tr>
-                <th>Code</th>
-                <td>{{ course.code }}</td>
-            </tr>
-            <tr>
-                <th>Title</th>
-                <td>{{ course.title }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ course.description }}</td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h2 class="h4 mb-0">Уроки курса</h2>
+            </div>
+            <div class="card-body">
+                {% if lessons|length > 0 %}
+                    <div class="list-group">
+                        {% for lesson in lessons %}
+                            <a href="{{ path('app_lesson_show', {'id': lesson.id}) }}"
+                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                {{ lesson.title }}
+                                <span class="badge bg-primary rounded-pill">→</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        Пока нет уроков в этом курсе
+                    </div>
+                {% endif %}
+            </div>
+        </div>
 
-    <a href="{{ path('app_course_index') }}">back to list</a>
+        <div class="d-flex justify-content-between mb-4">
+            <a href="{{ path('app_course_index') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> К списку курсов
+            </a>
 
-    <a href="{{ path('app_course_edit', {'id': course.id}) }}">edit</a>
-
-    {{ include('course/_delete_form.html.twig') }}
+            <div>
+                <a href="{{ path('app_course_edit', {'id': course.id}) }}" class="btn btn-warning me-2">
+                    <i class="fas fa-edit"></i> Редактировать курс
+                </a>
+                <a href="{{ path('app_lesson_new', {'course': course.id}) }}" class="btn btn-success me-2">
+                    <i class="fas fa-plus"></i> Добавить урок
+                </a>
+                {{ include('course/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </div>
 {% endblock %}

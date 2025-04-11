@@ -5,7 +5,7 @@ namespace App\Form;
 use App\Entity\Course;
 use App\Repository\CourseRepository;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use PHPUnit\Framework\Constraint\Callback;
+use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -33,20 +33,17 @@ class CourseType extends AbstractType
                         'max' => 255,
                         'maxMessage' => 'Код курса не может быть длиннее {{ limit }}'
                     ]),
-                    new Callback([
-                        'callback' => function ($value, ExecutionContextInterface $context) {
-                            $form = $context->getRoot();
-                            $course = $form->getData();
+                    new Callback(function ($value, ExecutionContextInterface $context) {
+                        $form = $context->getRoot();
+                        $course = $form->getData();
+                        $existingCourse = $this->courseRepository->findOneBy(['code' => $value]);
 
-                            $existingCourse = $this->courseRepository->findOneBy(['code' => $value]);
-
-                            if ($existingCourse && $existingCourse->getId() !== $course->getId()) {
-                                $context->buildViolation('Курс с таким кодом уже существует')
-                                    ->atPath('code')
-                                    ->addViolation();
-                            }
-                        },
-                    ]),
+                        if ($existingCourse && $existingCourse->getId() !== $course->getId()) {
+                            $context->buildViolation('Курс с таким кодом уже существует')
+                                ->atPath('code')
+                                ->addViolation();
+                        }
+                    }),
                 ],
             ])
             ->add('title', TextType::class, [
