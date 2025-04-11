@@ -14,8 +14,11 @@ class CourseControllerTest extends WebTestCase
 
     public static function setUpBeforeClass(): void
     {
+        // ядро Symfony будет корректно завершено
         self::ensureKernelShutdown();
+        //создание клиента для иммитации http-запросов
         $client = static::createClient();
+
         self::$em = $client->getContainer()->get(EntityManagerInterface::class);
         self::$courseRepository = self::$em->getRepository(Course::class);
     }
