@@ -2,6 +2,7 @@
 
 namespace App\Tests;
 
+use App\DataFixtures\AppFixtures;
 use App\Entity\Course;
 use App\Entity\Lesson;
 use Doctrine\ORM\EntityManagerInterface;
@@ -9,76 +10,47 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\CourseRepository;
 use App\Repository\LessonRepository;
-
+use Doctrine\Common\DataFixtures\Loader;
+use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 class LessonControllerTest extends WebTestCase
 {
-    private static EntityManagerInterface $em;
-    private static LessonRepository $lessonRepository;
-    private static CourseRepository $courseRepository;
+    private EntityManagerInterface $em;
+    private CourseRepository $courseRepository;
+    private LessonRepository $lessonRepository;
+    private $client;
 
-    public static function setUpBeforeClass(): void
-    {
-        self::ensureKernelShutdown();
-        $client = static::createClient();
-        self::$em = $client->getContainer()->get(EntityManagerInterface::class);
-        self::$lessonRepository = self::$em->getRepository(Lesson::class);
-        self::$courseRepository = self::$em->getRepository(Course::class);
-    }
-
+    // Используем setUp() для инициализации данных
     protected function setUp(): void
     {
         parent::setUp();
-        self::ensureKernelShutdown();
-        self::$em->getConnection()->beginTransaction();
+        $this->client = static::createClient();
+
+        // Получаем контейнер и сервисы
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->courseRepository = self::getContainer()->get(CourseRepository::class);
+        $this->lessonRepository = self::getContainer()->get(LessonRepository::class);
+
+        // Загружаем фикстуры
+        $loader = new Loader();
+        $loader->addFixture(new AppFixtures());
+
+        // Создаем и применяем очищение данных
+        $purger = new ORMPurger($this->em);
+        $purger->purge();
+
+        // Загружаем фикстуры
+        $executor = new \Doctrine\Common\DataFixtures\Executor\ORMExecutor($this->em, $purger);
+        $executor->execute($loader->getFixtures());
+
+        // Очистка EntityManager
+        $this->em->clear();
     }
-
-    protected function tearDown(): void
-    {
-        self::$em->getConnection()->rollBack();
-        parent::tearDown();
-    }
-
-    private function initializeDatabase(): void
-    {
-        $connection = self::$em->getConnection();
-
-        try {
-            $connection->executeStatement('DELETE FROM lesson');
-            $connection->executeStatement('DELETE FROM course');
-
-            $fixtures = new \App\DataFixtures\AppFixtures();
-            $fixtures->load(self::$em);
-        } catch (\Exception $e) {
-            if ($connection->isTransactionActive()) {
-                $connection->rollBack();
-            }
-            throw $e;
-        }
-    }
-
-//    public function testIndexPage(): void
-//    {
-//        $this->initializeDatabase();
-//        $client = static::createClient();
-//
-//
-//        $course = self::$courseRepository->findOneBy(['code' => 'web-development']);
-//        $client->request('GET', '/lesson', ['course_id' => $course->getId()]);
-//
-//        $this->assertResponseIsSuccessful();
-//        $this->assertSelectorTextContains('h1', 'Список уроков');
-//        $this->assertSelectorTextContains('table', 'Введение в веб-разработку');
-//    }
 
     public function testNewLesson(): void
     {
-        $this->initializeDatabase();
-        $client = static::createClient();
+        $course = $this->courseRepository->findOneBy(['code' => 'python-basics']);
 
-        // Берем курс из фикстур
-        $course = self::$courseRepository->findOneBy(['code' => 'python-basics']);
-
-        $crawler = $client->request('GET', '/lesson/new/'.$course->getId());
+        $crawler = $this->client->request('GET', '/lesson/new/'.$course->getId());
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Сохранить')->form([
@@ -87,20 +59,17 @@ class LessonControllerTest extends WebTestCase
             'lesson[orderNumber]' => 1,
         ]);
 
-        $client->submit($form);
+        $this->client->submit($form);
         $this->assertResponseRedirects('/courses/'.$course->getId());
 
-        $lesson = self::$lessonRepository->findOneBy(['title' => 'Новый тестовый урок']);
+        $lesson = $this->lessonRepository->findOneBy(['title' => 'Новый тестовый урок']);
         $this->assertNotNull($lesson);
     }
 
     public function testNewLessonValidation(): void
     {
-        $this->initializeDatabase();
-        $client = static::createClient();
-
-        $course = self::$courseRepository->findOneBy(['code' => 'databases-sql']);
-        $crawler = $client->request('GET', '/lesson/new/'.$course->getId());
+        $course = $this->courseRepository->findOneBy(['code' => 'databases-sql']);
+        $crawler = $this->client->request('GET', '/lesson/new/'.$course->getId());
 
         $form = $crawler->selectButton('Сохранить')->form([
             'lesson[title]' => '', // Пустое название
@@ -108,58 +77,28 @@ class LessonControllerTest extends WebTestCase
             'lesson[orderNumber]' => 1,
         ]);
 
-        $client->submit($form);
+        $this->client->submit($form);
         $this->assertResponseStatusCodeSame(422);
         $this->assertSelectorExists('.invalid-feedback');
     }
 
     public function testShowLesson(): void
     {
-        $this->initializeDatabase();
-        $client = static::createClient();
+        $lesson = $this->lessonRepository->findOneBy(['title' => 'Введение в базы данных']);
 
-        // Берем урок из фикстур
-        $lesson = self::$lessonRepository->findOneBy(['title' => 'Введение в базы данных']);
-
-        $client->request('GET', '/lesson/'.$lesson->getId());
+        $this->client->request('GET', '/lesson/'.$lesson->getId());
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('.card-header h1', $lesson->getTitle());
     }
 
     public function testShowNonExistentLesson(): void
     {
-        $client = static::createClient();
-        $client->request('GET', '/lesson/99999');
+        $this->client->request('GET', '/lesson/99999');
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
     }
 
-//    public function testEditLesson(): void
-//    {
-//        $this->initializeDatabase();
-//        $client = static::createClient();
-//
-//        $lesson = self::$lessonRepository->findOneBy(['title' => 'Запросы SELECT']);
-//        $crawler = $client->request('GET', '/lesson/'.$lesson->getId().'/edit');
-//        $this->assertResponseIsSuccessful();
-//
-//        $form = $crawler->selectButton('Сохранить изменения')->form([
-//            'lesson[title]' => 'Обновленное название урока',
-//            'lesson[content]' => 'Обновленное содержание урока',
-//            'lesson[orderNumber]' => 2,
-//        ]);
-//
-//        $client->submit($form);
-//        $this->assertResponseRedirects('/lesson/'.$lesson->getId());
-//
-//        self::$em->clear();
-//        $updatedLesson = self::$lessonRepository->find($lesson->getId());
-//        $this->assertEquals('Обновленное название урока', $updatedLesson->getTitle());
-//    }
     public function testEditLesson(): void
     {
-        $this->initializeDatabase();
-        $client = static::createClient();
-
         // Создаем тестовый курс и урок
         $course = new Course();
         $course->setCode('test-course');
@@ -172,11 +111,11 @@ class LessonControllerTest extends WebTestCase
         $lesson->setOrderNumber(1);
         $lesson->setCourse($course);
 
-        self::$em->persist($course);
-        self::$em->persist($lesson);
-        self::$em->flush();
+        $this->em->persist($course);
+        $this->em->persist($lesson);
+        $this->em->flush();
 
-        $crawler = $client->request('GET', '/lesson/'.$lesson->getId().'/edit');
+        $crawler = $this->client->request('GET', '/lesson/'.$lesson->getId().'/edit');
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Сохранить изменения')->form([
@@ -185,36 +124,45 @@ class LessonControllerTest extends WebTestCase
             'lesson[orderNumber]' => 2,
         ]);
 
-        $client->submit($form);
+        $this->client->submit($form);
         $this->assertResponseRedirects('/lesson/'.$lesson->getId());
 
-        self::$em->clear();
-        $updatedLesson = self::$lessonRepository->find($lesson->getId());
+        $this->em->clear();
+        $updatedLesson = $this->lessonRepository->find($lesson->getId());
         $this->assertEquals('Обновленное название урока', $updatedLesson->getTitle());
     }
-//    public function testDeleteLesson(): void
-//    {
-//        $this->initializeDatabase();
-//        $client = static::createClient();
-//
-//        $lesson = self::$lessonRepository->findOneBy(['title' => 'Связи между таблицами']);
-//        $courseId = $lesson->getCourse()->getId();
-//
-//        // Включаем сессии для работы с CSRF
-//        $client->enableProfiler();
-//
-//        // Получаем страницу урока и находим форму удаления
-//        $crawler = $client->request('GET', '/lesson/'.$lesson->getId());
-//        $form = $crawler->filter('form[action*="delete"]')->form();
-//
-//        // Отправляем форму удаления
-//        $client->submit($form);
-//
-//        $this->assertResponseRedirects('/courses/'.$courseId);
-//
-//        // Проверяем, что урок удален из базы
-//        self::$em->clear();
-//        $deletedLesson = self::$lessonRepository->find($lesson->getId());
-//        $this->assertNull($deletedLesson);
-//    }
+
+    public function testDeleteLesson(): void
+    {
+        // Получаем урок, который нужно удалить
+        $lesson = $this->lessonRepository->findOneBy(['title' => 'Связи между таблицами']);
+        $courseId = $lesson->getCourse()->getId();
+
+        // Включаем сессии для работы с CSRF
+        $this->client->enableProfiler();
+
+        // Получаем страницу урока и находим форму удаления
+        $crawler = $this->client->request('GET', '/lesson/'.$lesson->getId());
+        $this->assertResponseIsSuccessful();
+
+        // Находим форму удаления
+        $form = $crawler->selectButton('Удалить')->form();
+
+        // Вставляем CSRF токен в форму
+        $csrfToken = $crawler->filter('input[name="_token"]')->attr('value');
+        $form['_token'] = $csrfToken;
+
+        // Отправляем форму удаления
+        $this->client->submit($form);
+
+        // Проверяем редирект на страницу курса
+        $this->assertResponseRedirects('/courses/'.$courseId);
+
+        // Проверяем, что урок удален из базы данных
+        $this->em->clear(); // Очистка Entity Manager
+        $deletedLesson = $this->lessonRepository->find($lesson->getId());
+        $this->assertNull($deletedLesson, 'Урок не был удален');
+    }
+
+
 }
