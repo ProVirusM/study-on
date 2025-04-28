@@ -43,3 +43,7 @@ services:
       - ${PWD}:/app
       - ${HOME}/.yarn:/yarn
     command: tail -f /dev/null
+networks:
+  default:
+    external: true
+    name: study-onbilling_default

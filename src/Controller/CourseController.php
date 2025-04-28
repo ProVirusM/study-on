@@ -14,6 +14,15 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/courses')]
 final class CourseController extends AbstractController
 {
+    #[Route('/phpinfo', name: 'php_info')]
+    public function phpInfo(): Response
+    {
+        ob_start();
+        phpinfo();  // Это вызовет вывод полной информации о PHP
+        $phpinfo = ob_get_clean();
+
+        return new Response($phpinfo);
+    }
     #[Route(name: 'app_course_index', methods: ['GET'])]
     public function index(CourseRepository $courseRepository): Response
     {
