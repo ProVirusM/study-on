@@ -1,6 +1,6 @@
 import './bootstrap.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import 'fortawesome/fontawesome-free/css/all.css';
+import "@fortawesome/fontawesome-free/css/all.css";
 // @import "~bootstrap/scss/bootstrap";
 /*
  * Welcome to your app's main JavaScript file!

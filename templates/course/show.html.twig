@@ -19,7 +19,7 @@
                 {% if lessons|length > 0 %}
                     <div class="list-group">
                         {% for lesson in lessons %}
-                            <a href="{{ path('app_lesson_show', {'id': lesson.id}) }}"
+                            <a {% if is_granted('IS_AUTHENTICATED_FULLY') %} href="{{ path('app_lesson_show', {'id': lesson.id}) }} {% endif %}"
                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                 {{ lesson.title }}
                                 <span class="badge bg-primary rounded-pill">→</span>
@@ -38,7 +38,7 @@
             <a href="{{ path('app_course_index') }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> К списку курсов
             </a>
-
+            {% if is_granted('ROLE_SUPER_ADMIN') %}
             <div>
                 <a href="{{ path('app_course_edit', {'id': course.id}) }}" class="btn btn-warning me-2">
                     <i class="fas fa-edit"></i> Редактировать курс
@@ -48,6 +48,7 @@
                 </a>
                 {{ include('course/_delete_form.html.twig') }}
             </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

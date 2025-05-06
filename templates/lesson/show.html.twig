@@ -6,12 +6,14 @@
             <div class="card-header bg-primary text-white">
                 <div class="d-flex justify-content-between align-items-center">
                     <h1 class="h3 mb-0">{{ lesson.title }}</h1>
+                    {% if is_granted('ROLE_SUPER_ADMIN') %}
                     <div>
                         <a href="{{ path('app_lesson_edit', {'id': lesson.id}) }}" class="btn btn-sm btn-warning me-2">
                             <i class="fas fa-edit"></i> Редактировать
                         </a>
                         {{ include('lesson/_delete_form.html.twig') }}
                     </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -23,10 +25,10 @@
                     </a>
                 </div>
 
-                <div class="mb-3">
-                    <h5 class="text-muted">Порядковый номер:</h5>
-                    <span class="badge bg-secondary fs-6">{{ lesson.orderNumber }}</span>
-                </div>
+{#                <div class="mb-3">#}
+{#                    <h5 class="text-muted">Порядковый номер:</h5>#}
+{#                    <span class="badge bg-secondary fs-6">{{ lesson.orderNumber }}</span>#}
+{#                </div>#}
 
                 <div class="lesson-content mt-4 p-3 bg-light rounded">
                     <h4 class="mb-3">Содержание урока:</h4>

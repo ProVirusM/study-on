@@ -1,0 +1,69 @@
+
+
+{# templates/profile/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h1 class="h4 mb-0">Профиль пользователя</h1>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h2 class="h5 text-muted">Основная информация</h2>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Email:</strong> {{ user.email }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p>
+                                        <strong>Роль:</strong>
+                                        {% if is_admin %}
+                                            <span class="badge bg-danger">Администратор</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">Пользователь</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h2 class="h5 text-muted">Финансы</h2>
+                            <hr>
+                            <p class="fs-4">
+                                <strong>Баланс:</strong>
+                                <span class="text-success">{{ balance|number_format(2, '.', ' ') }} ₽</span>
+                            </p>
+                        </div>
+
+                        {% if is_admin %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-shield-alt"></i> У вас есть права администратора
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('app_course_index') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-book"></i> К курсам
+                            </a>
+                            <a href="{{ path('app_logout') }}" class="btn btn-outline-danger">
+                                <i class="fas fa-sign-out-alt"></i> Выйти
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

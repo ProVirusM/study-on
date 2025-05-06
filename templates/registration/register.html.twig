@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block body %}
+    <h1>Регистрация</h1>
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+{#    #}{# Вывод flash-сообщений об ошибках #}
+{#    {% for flash_error in app.flashes('error') %}#}
+{#        <div class="alert alert-danger">{{ flash_error }}</div>#}
+{#    {% endfor %}#}
+
+{#    #}{# Вывод ошибок валидации формы #}
+{#    {% if registrationForm.vars.errors|length > 0 %}#}
+{#        <div class="alert alert-danger">#}
+{#            {{ form_errors(registrationForm) }}#}
+{#        </div>#}
+{#    {% endif %}#}
+    {{ form_start(form)}}
+    {{ form_widget(form) }}
+    <button class="btn btn-primary">Зарегистрироваться</button>
+    {{ form_end(form) }}
+{% endblock %}

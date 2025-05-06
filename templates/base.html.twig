@@ -1,23 +1,55 @@
 <!DOCTYPE html>
-{#<html>#}
-
-
+<html lang="ru">
 <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-            {{ encore_entry_link_tags('app') }}
-        {% endblock %}
-
-
-        {% block javascripts %}
-            {{ encore_entry_script_tags('app') }}
-{#            {% block importmap %}{{ importmap('app') }}{% endblock %}#}
-        {% endblock %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
+    <meta charset="UTF-8">
+    <title>{% block title %}Welcome!{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+    {% block stylesheets %}
+        {{ encore_entry_link_tags('app') }}
+    {% endblock %}
+    {% block javascripts %}
         {{ encore_entry_script_tags('app') }}
-    </body>
+    {% endblock %}
+</head>
+<body>
+<nav class="admin-panel navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <span class="navbar-brand">Панель управления</span>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_course_index') }}">
+                        <i class="fas fa-book-bookmark"></i> Курсы
+                    </a>
+                </li>
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_profile') }}">
+                            <i class="fas fa-user"></i> Мой профиль
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_logout') }}">
+                            <i class="fas fa-sign-out-alt"></i> Выйти
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a href="{{ path('app_login') }}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-1"></i> Войти
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ path('app_register') }}" class="btn btn-outline-light ms-2">
+                            Регистрация
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+{% block body %}{% endblock %}
+</body>
 </html>
