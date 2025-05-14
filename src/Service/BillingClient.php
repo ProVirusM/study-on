@@ -75,4 +75,15 @@ class BillingClient
             token: $token,
         );
     }
+
+    public function refreshToken(string $refreshToken): array
+    {
+        return $this->request(
+            method: 'POST',
+            url: '/api/v1/token/refresh',
+            data: [
+                'refresh_token' => $refreshToken,
+            ],
+        );
+    }
 }

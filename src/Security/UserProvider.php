@@ -12,14 +12,14 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 use App\Exception\BillingUnavailableException;
 //use App\Exception\JwtManagerException;
 use App\Service\BillingClient;
-//use App\Service\JwtTokenManager;
+use App\Service\JwtTokenManager;
 
 
 class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
     public function __construct(
         private BillingClient $billingClient,
-        //private JwtTokenManager $jwtManager,
+        private JwtTokenManager $jwtManager,
     ) {
     }
     /**
@@ -49,6 +49,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
                 $user->setEmail($responseBilling['username'])
                     ->setApiToken($identifier)
                     ->setRoles($responseBilling['roles']);
+
                 return $user;
             }
             throw new UserNotFoundException();
@@ -83,14 +84,25 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         }
 
         try {
-            $userData = $this->billingClient->getCurrentUser($user->getApiToken());
+//            $userData = $this->billingClient->getCurrentUser($user->getApiToken());
+//
+//
+//            $refreshedUser = new User();
+//            $refreshedUser->setEmail($userData['username'])
+//                ->setRoles($userData['roles'])
+//                ->setApiToken($user->getApiToken())
+//                ->setRefreshToken($user->getRefreshToken());
+            if ($this->jwtManager->isExpired($user->getApiToken())){
+                try {
+                    $newToken  = $this->billingClient->refreshToken($user->getRefreshToken())['token'];
+                    $user->setApiToken($newToken);
+                } catch (BillingUnavailableException $ex) {
+                    throw new UserNotFoundException();
+                }
+            }
 
-            $refreshedUser = new User();
-            $refreshedUser->setEmail($userData['username'])
-                ->setRoles($userData['roles'])
-                ->setApiToken($user->getApiToken());
 
-            return $refreshedUser;
+            return $user;
         } catch (BillingUnavailableException $e) {
             throw new UserNotFoundException('Unable to refresh user.', 0, $e);
         }

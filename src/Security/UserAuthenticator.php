@@ -53,15 +53,18 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
 //                throw new CustomUserMessageAuthenticationException('Сервер не отвечает, попробуйте позже.');
 //            }
             $token = $authResponse['token'];
+            $refresh_token= $authResponse['refresh_token'];
 
             // Лямбда-функция, которая подгружает пользователя по токену
-            $loadUser = function (string $userIdentifier) use ($token): User {
+            $loadUser = function (string $userIdentifier) use ($refresh_token, $token): User {
                 $userData = $this->billingClient->getCurrentUser($token);
 
                 $user = new User();
                 $user->setEmail($userData['username'])
                     ->setRoles($userData['roles'])
-                    ->setApiToken($token);
+                    ->setApiToken($token)
+                    ->setRefreshToken($refresh_token);
+
 
                 return $user;
             };

@@ -8,12 +8,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     private $email;
     private $apiToken;
+
+    private ?string $refreshToken = null;
     private ?string $password = null;
+
     /**
      * @var list<string> The user roles
      */
     private $roles = [];
 
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken;
+    }
+
+    public function setRefreshToken(?string $refreshToken): static
+    {
+        $this->refreshToken = $refreshToken;
+        return $this;
+    }
     public function getPassword(): ?string
     {
         return $this->password;
