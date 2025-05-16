@@ -9,16 +9,21 @@ class JwtTokenManager
     // В минутах
     private int $reserveTimeCheck = 5;
 
+    /**
+     * @throws JwtManagerException
+     */
     private function decode(string $token): array
     {
         if (count(explode('.', $token)) < 3){
             throw new JwtManagerException(message: "Не корректный jwt токен");
         }
         $jwtArr = array_combine(['header', 'payload', 'hash'], explode('.', $token));
-        $payload = json_decode(base64_decode($jwtArr['payload']), true);
-        return $payload;
+        return json_decode(base64_decode($jwtArr['payload']), true);
     }
 
+    /**
+     * @throws JwtManagerException
+     */
     public function isExpired(string $token): mixed
     {
         $payload = $this->decode($token);
@@ -28,6 +33,6 @@ class JwtTokenManager
         $timestampReserve = $this->reserveTimeCheck * 60;
         $timeNowWithReserve = $dateTimeNow + $timestampReserve;
 
-        return $exp < $timeNowWithReserve ? true : false;
+        return $exp < $timeNowWithReserve;
     }
 }

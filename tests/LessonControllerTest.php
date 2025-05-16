@@ -5,6 +5,8 @@ namespace App\Tests;
 use App\DataFixtures\AppFixtures;
 use App\Entity\Course;
 use App\Entity\Lesson;
+use App\Security\User;
+use App\Tests\Mock\BillingClientMock;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,6 +31,19 @@ class LessonControllerTest extends WebTestCase
         $this->em = self::getContainer()->get(EntityManagerInterface::class);
         $this->courseRepository = self::getContainer()->get(CourseRepository::class);
         $this->lessonRepository = self::getContainer()->get(LessonRepository::class);
+
+        //////////////////////////////
+        $this->client->disableReboot();
+
+        $this->client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
+        $this->client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
+        $user = new User();
+        $user->setEmail('test@example.com')
+            ->setApiToken('valid-token')
+            ->setRoles(['ROLE_SUPER_ADMIN']);
+        $this->client->loginUser($user);
+        ///////////////////////////
+
 
         // Загружаем фикстуры
         $loader = new Loader();

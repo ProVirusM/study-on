@@ -3,6 +3,8 @@
 namespace App\Tests;
 
 use App\Entity\Course;
+use App\Security\User;
+use App\Tests\Mock\BillingClientMock;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CourseRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -13,6 +15,7 @@ use Doctrine\Common\DataFixtures\Loader;
 use Liip\TestFixturesBundle\Test\FixturesTrait;
 use Liip\TestFixturesBundle\Loader\FixtureLoader;
 
+
 use Doctrine\Common\DataFixtures\Purger\ORMPurger as DoctrineORMPurger;
 class CourseControllerTest extends WebTestCase
 {
@@ -21,13 +24,42 @@ class CourseControllerTest extends WebTestCase
     private EntityManagerInterface $em;
     private CourseRepository $courseRepository;
 
+    private function createMockedClient(): \Symfony\Bundle\FrameworkBundle\KernelBrowser
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+
+        $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
+        $client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
+
+        return $client;
+    }
 
     protected function setUp(): void
     {
+//        $client = $this->createMockedClient();
+//
+//        // Создаём и логиним пользователя
+//        $user = new User();
+//        $user->setEmail('test@example.com')
+//            ->setApiToken('valid-token')
+//            ->setRoles(['ROLE_USER']);
+//        $client->loginUser($user);
         $this->client = static::createClient();
         $this->em = self::getContainer()->get(EntityManagerInterface::class);
         $this->courseRepository = self::getContainer()->get(CourseRepository::class); // Инициализация репозитория
 
+        //////////////////////////////
+        $this->client->disableReboot();
+
+        $this->client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
+        $this->client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
+        $user = new User();
+        $user->setEmail('test@example.com')
+            ->setApiToken('valid-token')
+            ->setRoles(['ROLE_SUPER_ADMIN']);
+        $this->client->loginUser($user);
+        ///////////////////////////
         // Создаем загрузчик фикстур
         $loader = new Loader();
         $loader->addFixture(new AppFixtures());
@@ -76,6 +108,18 @@ class CourseControllerTest extends WebTestCase
 
     public function testNewCourseForm(): void
     {
+        // Создаём мок-пользователя
+//        $user = $this->createMock(User::class);
+//        $user->method('getRoles')->willReturn(['ROLE_SUPER_ADMIN']);
+//        $user->method('getUserIdentifier')->willReturn('admin@example.com');
+        // Открываем сессию и вставляем туда нужный токен
+//        $session = self::getContainer()->get('session');
+//        $session->set('token', 'valid-token');
+//        $session->save();
+//
+//        // Копируем сессионную куку в клиент
+//        $this->client->getCookieJar()->set(new \Symfony\Component\BrowserKit\Cookie($session->getName(), $session->getId()));
+
         $crawler = $this->client->request('GET', '/courses/new');
 
         $form = $crawler->selectButton('Сохранить')->form([

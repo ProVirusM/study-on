@@ -44,4 +44,5 @@ class BillingClientMock extends BillingClient
             'balance' => 1000.00
         ];
     }
+
 }
