@@ -43,6 +43,9 @@
                                 <strong>Баланс:</strong>
                                 <span class="text-success">{{ balance|number_format(2, '.', ' ') }} ₽</span>
                             </p>
+                            <a href="{{ path('app_transaction') }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-receipt"></i> История транзакций
+                            </a>
                         </div>
 
                         {% if is_admin %}

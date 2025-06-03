@@ -27,14 +27,14 @@ abstract class AbstractTest extends WebTestCase
         parent::tearDown();
     }
 
-    protected function replaceServiceBillingClient($ex = false): void
-    {
-        $this->client->disableReboot();
-        $this->client->getContainer()->set(
-            'App\Service\BillingClient',
-            new BillingClientMock('', ex: $ex),
-        );
-    }
+//    protected function replaceServiceBillingClient($ex = false): void
+//    {
+//        $this->client->disableReboot();
+//        $this->client->getContainer()->set(
+//            'App\Service\BillingClient',
+//            new BillingClientMock('', ex: $ex),
+//        );
+//    }
 
     protected function getFixtures(): array
     {

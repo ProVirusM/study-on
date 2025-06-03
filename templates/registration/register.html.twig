@@ -3,23 +3,38 @@
 {% block title %}Регистрация{% endblock %}
 
 {% block body %}
-    <h1>Регистрация</h1>
-    {% if error %}
-        <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
-{#    #}{# Вывод flash-сообщений об ошибках #}
-{#    {% for flash_error in app.flashes('error') %}#}
-{#        <div class="alert alert-danger">{{ flash_error }}</div>#}
-{#    {% endfor %}#}
+    <div class="container mt-5">
+        <h1 class="mb-4">Регистрация</h1>
 
-{#    #}{# Вывод ошибок валидации формы #}
-{#    {% if registrationForm.vars.errors|length > 0 %}#}
-{#        <div class="alert alert-danger">#}
-{#            {{ form_errors(registrationForm) }}#}
-{#        </div>#}
-{#    {% endif %}#}
-    {{ form_start(form)}}
-    {{ form_widget(form) }}
-    <button class="btn btn-primary">Зарегистрироваться</button>
-    {{ form_end(form) }}
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        {% for flash_error in app.flashes('error') %}
+            <div class="alert alert-danger">{{ flash_error }}</div>
+        {% endfor %}
+
+        {{ form_start(form) }}
+
+        <div class="mb-3">
+            {{ form_label(form.email) }}
+            {{ form_widget(form.email, {'attr': {'class': 'form-control' ~ (form.email.vars.errors|length > 0 ? ' is-invalid' : '')}}) }}
+            {{ form_errors(form.email) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.password) }}
+            {{ form_widget(form.password, {'attr': {'class': 'form-control' ~ (form.password.vars.errors|length > 0 ? ' is-invalid' : '')}}) }}
+            {{ form_errors(form.password) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.confirmPassword) }}
+            {{ form_widget(form.confirmPassword, {'attr': {'class': 'form-control' ~ (form.confirmPassword.vars.errors|length > 0 ? ' is-invalid' : '')}}) }}
+            {{ form_errors(form.confirmPassword) }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+        {{ form_end(form) }}
+    </div>
 {% endblock %}

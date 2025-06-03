@@ -2,15 +2,22 @@
 
 namespace App\Tests\Mock;
 
+use AllowDynamicProperties;
 use App\Repository\CourseRepository;
 use App\Security\User;
+use App\Tests\Mock\BillingClientMock;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use App\Dto\UserRegisterDto;
 use App\Form\RegistrationFormType;
 use Symfony\Component\Form\Test\TypeTestCase;
-class AuthControllerTest extends WebTestCase
+
+
+
+#[AllowDynamicProperties] class AuthControllerTest extends WebTestCase
 {
+
+
     private function createMockedClient(): \Symfony\Bundle\FrameworkBundle\KernelBrowser
     {
         $client = static::createClient();
@@ -21,45 +28,76 @@ class AuthControllerTest extends WebTestCase
 
         return $client;
     }
-//    private function createMockedClient(): \Symfony\Bundle\FrameworkBundle\KernelBrowser
-//    {
-//        $client = static::createClient();
-//        $client->disableReboot();
-//
-//        $mock = new BillingClientMock();
-//        $client->getContainer()->set('App\Service\BillingClient', $mock);
-//
-//        return $client;
-//    }
+    public function testLoginAsAdminThroughForm(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+
+        $client->getContainer()->set('App\Service\BillingClient', new \App\Tests\Mock\BillingClientMock());
+        $client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
+
+        $crawler = $client->request('GET', '/login');
+
+        $form = $crawler->selectButton('Sign in')->form([
+            'email' => 'admin@example.com',
+            'password' => 'adminpass',
+
+        ]);
+
+        $client->submit($form);
+
+        $this->assertResponseRedirects('/profile');
+        $client->followRedirect();
+
+        $this->assertSelectorTextContains('body', 'Администратор');
+    }
+
 
     public function testSuccessfulRegistration(): void
     {
-        $client = $this->createMockedClient();
+        $this->client = static::createClient();
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->courseRepository = self::getContainer()->get(CourseRepository::class);
 
-        $crawler = $client->request('GET', '/register');
+        $this->client->disableReboot();
+
+        $this->client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
+        $this->client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
+
+        $crawler = $this->client->request('GET', '/register');
         $form = $crawler->selectButton('Зарегистрироваться')->form();
 
         $form['registration_form[email]'] = 'new@example.com';
         $form['registration_form[password]'] = 'password123';
         $form['registration_form[confirmPassword]'] = 'password123';
 
-        $client->submit($form);
+        $this->client->submit($form);
         $this->assertResponseRedirects('/courses');
+
     }
+
 
     public function testProfileAccessWithValidToken(): void
     {
-        $client = $this->createMockedClient();
+        $this->client = static::createClient();
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->courseRepository = self::getContainer()->get(CourseRepository::class);
 
-        // Создаём и логиним пользователя
-        $user = new User();
-        $user->setEmail('test@example.com')
-            ->setApiToken('valid-token')
-            ->setRoles(['ROLE_USER']);
-        $client->loginUser($user); // Аутентифицируем пользователя
+        $this->client->disableReboot();
+
+        $this->client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
+        $this->client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
+
+        // Логинимся
+        $crawler = $this->client->request('GET', '/login');
+        $form = $crawler->selectButton('Sign in')->form([
+            'email' => 'user@example.com',
+            'password' => 'adminpass',
+        ]);
+        $this->client->submit($form);
 
         // Теперь делаем запрос
-        $client->request('GET', '/profile');
+        $this->client->request('GET', '/profile');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('body', 'Профиль пользователя');
@@ -85,29 +123,48 @@ class AuthControllerTest extends WebTestCase
 
     public function testUserCannotAccessCourseEdit(): void
     {
-        $client = $this->createMockedClient();
+        $this->client = static::createClient();
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->courseRepository = self::getContainer()->get(CourseRepository::class);
 
-        $user = new User();
-        $user->setEmail('user@example.com')
-            ->setApiToken('valid-token')
-            ->setRoles(['ROLE_USER']);
-        $client->loginUser($user);
+        $this->client->disableReboot();
 
-        $client->request('GET', '/courses/new');
+        $this->client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
+        $this->client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
+
+        // Логинимся
+        $crawler = $this->client->request('GET', '/login');
+        $form = $crawler->selectButton('Sign in')->form([
+            'email' => 'user@example.com',
+            'password' => 'adminpass',
+        ]);
+        $this->client->submit($form);
+
+        $this->client->request('GET', '/courses/new');
         $this->assertResponseStatusCodeSame(403);
     }
 
     public function testUserCannotAccessLessonEdit(): void
     {
-        $client = $this->createMockedClient();
+        $this->client = static::createClient();
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->courseRepository = self::getContainer()->get(CourseRepository::class);
 
-        $user = new User();
-        $user->setEmail('user@example.com')
-            ->setApiToken('valid-token')
-            ->setRoles(['ROLE_USER']);
-        $client->loginUser($user);
+        $this->client->disableReboot();
 
-        $client->request('GET', '/lesson/new/1');
+        $this->client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
+        $this->client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
+
+        // Логинимся
+        $crawler = $this->client->request('GET', '/login');
+        $form = $crawler->selectButton('Sign in')->form([
+            'email' => 'user@example.com',
+            'password' => 'adminpass',
+        ]);
+        $this->client->submit($form);
+
+
+        $this->client->request('GET', '/lesson/new/1');
         $this->assertResponseStatusCodeSame(403);
     }
 
@@ -172,4 +229,88 @@ class AuthControllerTest extends WebTestCase
 
         $this->assertStringContainsString('Пароли не совпадают', $client->getResponse()->getContent());
     }
+    public function testCoursePurchaseFromList(): void
+    {
+        $this->client = static::createClient();
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->courseRepository = self::getContainer()->get(CourseRepository::class);
+
+        $this->client->disableReboot();
+
+        $this->client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
+        $this->client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
+
+        // Логинимся
+        $crawler = $this->client->request('GET', '/login');
+        $form = $crawler->selectButton('Sign in')->form([
+            'email' => 'admin@example.com',
+            'password' => 'adminpass',
+        ]);
+        $this->client->submit($form);
+
+        // Открываем список курсов
+        $crawler = $this->client->request('GET', '/courses');
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h1', 'Курсы');
+
+        // Кликаем по курсу
+        $link = $crawler->selectLink('Веб-разработка с нуля')->link();
+        $crawler = $this->client->click($link);
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h1', 'Веб-разработка с нуля');
+
+        // Проверка кнопки открытия модального окна
+        $this->assertSelectorExists('button[data-bs-target="#confirmPurchaseModal"]');
+
+        // Извлекаем ID курса из URL
+        $currentUrl = $this->client->getRequest()->getUri(); // http://localhost/courses/id
+        $path = parse_url($currentUrl, PHP_URL_PATH);        // /courses/id
+        $courseId = basename($path);                         // id
+
+        // Симулируем подтверждение покупки
+        $this->client->request('GET', '/courses/' . $courseId . '/pay');
+
+        // Проверяем редирект и flash-сообщение
+        $this->assertResponseRedirects('/courses/' . $courseId);
+        $this->client->followRedirect();
+
+        $this->assertSelectorExists('.alert-success');
+        $this->assertSelectorTextContains('.alert-success', 'Оплата прошла успешно');
+    }
+    public function testTransactionHistoryButtonLeadsToCorrectPage(): void
+    {
+        $this->client = static::createClient();
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
+        $this->courseRepository = self::getContainer()->get(CourseRepository::class);
+
+        $this->client->disableReboot();
+
+        $this->client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
+        $this->client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
+
+        // Логинимся
+        $crawler = $this->client->request('GET', '/login');
+        $form = $crawler->selectButton('Sign in')->form([
+            'email' => 'admin@example.com',
+            'password' => 'adminpass',
+        ]);
+        $this->client->submit($form);
+
+        // Заходим на страницу профиля
+        $crawler = $this->client->request('GET', '/profile');
+
+        // Проверяем, что кнопка "История транзакций" существует
+        $link = $crawler->selectLink('История транзакций')->link();
+        $this->assertNotNull($link, 'Кнопка "История транзакций" не найдена.');
+
+        // Переходим по ссылке
+        $crawler = $this->client->click($link);
+
+        // Проверяем, что страница успешно загрузилась
+        $this->assertResponseIsSuccessful();
+
+        // Убедимся, что заголовок на странице — "История транзакций"
+        $this->assertSelectorTextContains('h1', 'История транзакций');
+    }
+
 }

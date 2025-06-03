@@ -15,8 +15,8 @@ class FakeJwtTokenManager extends JwtTokenManager
     public function decodePublic(string $token): array
     {
         return [
-            'username' => 'test@example.com',
-            'roles' => ['ROLE_USER'],
+            'username' => 'admin@example.com',
+            'roles' => ["ROLE_SUPER_ADMIN"],
             'exp' => time() + 3600
         ];
     }

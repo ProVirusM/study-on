@@ -4,10 +4,15 @@ namespace App\Controller;
 
 use App\Entity\Course;
 use App\Entity\Lesson;
+use App\Exception\BillingUnavailableException;
 use App\Form\LessonType;
 use App\Repository\LessonRepository;
+use App\Service\BillingClient;
+use App\Service\CourseService;
+use App\Service\PurchasedCourses;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Finder\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -15,6 +20,13 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/lesson')]
 final class LessonController extends AbstractController
 {
+    public function __construct(
+        private PurchasedCourses $purchasedCourses,
+        private CourseService $courseService,
+        private BillingClient $billingClient,
+    ) {
+    }
+
     #[Route(name: 'app_lesson_index', methods: ['GET'])]
     public function index(LessonRepository $lessonRepository): Response
     {
@@ -46,9 +58,22 @@ final class LessonController extends AbstractController
         ]);
     }
 
+    /**
+     * @throws BillingUnavailableException
+     */
     #[Route('/{id}', name: 'app_lesson_show', methods: ['GET'])]
     public function show(Lesson $lesson): Response
     {
+        //$user = $this->getUser();
+        $course = $lesson->getCourse();
+        $course = $this->purchasedCourses->getDataCourse($course);
+        if (
+            $course['type'] !== 'free'
+            && empty($course['isPurchased'])
+            && !$this->isGranted('ROLE_SUPER_ADMIN')
+        ) {
+            throw new AccessDeniedException('Для доступа к этому уроку необходимо приобрести курс.');
+        }
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,
             'course' => $lesson->getCourse(),

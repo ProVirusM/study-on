@@ -3,6 +3,7 @@
 namespace App\Tests;
 
 use App\Entity\Course;
+use App\Exception\BillingUnavailableException;
 use App\Security\User;
 use App\Tests\Mock\BillingClientMock;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,16 +36,12 @@ class CourseControllerTest extends WebTestCase
         return $client;
     }
 
+    /**
+     * @throws BillingUnavailableException
+     */
     protected function setUp(): void
     {
-//        $client = $this->createMockedClient();
-//
-//        // Создаём и логиним пользователя
-//        $user = new User();
-//        $user->setEmail('test@example.com')
-//            ->setApiToken('valid-token')
-//            ->setRoles(['ROLE_USER']);
-//        $client->loginUser($user);
+
         $this->client = static::createClient();
         $this->em = self::getContainer()->get(EntityManagerInterface::class);
         $this->courseRepository = self::getContainer()->get(CourseRepository::class); // Инициализация репозитория
@@ -54,11 +51,16 @@ class CourseControllerTest extends WebTestCase
 
         $this->client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
         $this->client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
-        $user = new User();
-        $user->setEmail('test@example.com')
-            ->setApiToken('valid-token')
-            ->setRoles(['ROLE_SUPER_ADMIN']);
-        $this->client->loginUser($user);
+        $crawler = $this->client->request('GET', '/login');
+
+        $form = $crawler->selectButton('Sign in')->form([
+            'email' => 'admin@example.com',
+            'password' => 'adminpass',
+
+        ]);
+
+        $this->client->submit($form);
+
         ///////////////////////////
         // Создаем загрузчик фикстур
         $loader = new Loader();
@@ -177,12 +179,15 @@ class CourseControllerTest extends WebTestCase
             'course[title]' => 'Основы программирования на Python777',  // Изменяем название курса
             'course[description]' => 'Изучение базового синтаксиса и возможностей Python.', // Изменяем описание курса
             'course[code]' => 'python-basics',
+            'course[type]' => 'free',
+            'course[price]' => 480.0,
             'course[_token]' => $crawler->filter('input[name="course[_token]"]')->attr('value'),
         ]);
 
         $this->client->submit($form);
 
-        $this->assertResponseRedirects('/courses/'.$course->getId());
+        //$this->assertResponseRedirects('/courses/'.$course->getId());
+        $this->assertResponseRedirects('/courses');
 
         $this->em->clear();  // Сбрасываем кэш для получения актуальных данных
         $updatedCourse = $this->courseRepository->find($course->getId());  // Получаем обновленный курс из базы

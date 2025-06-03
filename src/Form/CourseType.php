@@ -4,6 +4,8 @@ namespace App\Form;
 
 use App\Entity\Course;
 use App\Repository\CourseRepository;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Form\AbstractType;
@@ -24,47 +26,26 @@ class CourseType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('code', TextType::class, [
-                'constraints' => [
-                    new NotBlank([
-                        'message' => 'Пожалуйста, введите код курса.'
-                    ]),
-                    new Length([
-                        'max' => 255,
-                        'maxMessage' => 'Код курса не может быть длиннее {{ limit }}'
-                    ]),
-                    new Callback(function ($value, ExecutionContextInterface $context) {
-                        $form = $context->getRoot();
-                        $course = $form->getData();
-                        $existingCourse = $this->courseRepository->findOneBy(['code' => $value]);
-
-                        if ($existingCourse && $existingCourse->getId() !== $course->getId()) {
-                            $context->buildViolation('Курс с таким кодом уже существует')
-                                ->atPath('code')
-                                ->addViolation();
-                        }
-                    }),
+            ->add('code', TextType::class)
+            ->add('title', TextType::class)
+            ->add('type', ChoiceType::class, [
+                'choices' => [
+                    'Бесплатный' => 'free',
+                    'Аренда' => 'rent',
+                    'Платный' => 'buy',
                 ],
+                'label' => 'Тип курса'
             ])
-            ->add('title', TextType::class, [
-                'constraints' => [
-                    new NotBlank([
-                        'message' => 'Пожалуйста, введите название курса',
-                    ]),
-                    new Length([
-                        'max' => 255,
-                        'maxMessage' => 'Название курса не может быть длиннее {{ limit }} символов',
-                    ]),
-                ],
+            ->add('price', MoneyType::class, [
+                'help' => 'Если курс бесплатный, то введенная цена не будет учитываться',
+                'label' => 'Цена курса',
+                'scale' => 2,
+                'currency' => 'RUB',
+                'required' => false,
             ])
             ->add('description', TextareaType::class, [
                 'required' => false,
-                'constraints' => [
-                    new Length([
-                        'max' => 1000,
-                        'maxMessage' => 'Описание курса не может быть длиннее {{ limit }} символов',
-                    ]),
-                ],
+
             ])
         ;
     }
@@ -72,7 +53,7 @@ class CourseType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Course::class,
+            'data_class' => \App\Dto\CourseDto::class,
         ]);
     }
 }

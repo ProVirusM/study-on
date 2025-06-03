@@ -31,41 +31,19 @@ class LessonType extends AbstractType
     {
         $builder
             ->add('title', TextType::class, [
-                'constraints' => [
-                    new NotBlank([
-                        'message' => 'Пожалуйста, введите название урока',
-                    ]),
-                    new Length([
-                        'max' => 255,
-                        'maxMessage' => 'Название урока не может быть длиннее {{ limit }} символов',
-                    ]),
-                ],
+
             ])
             ->add('content', TextareaType::class, [
-                'constraints' => [
-                    new NotBlank([
-                        'message' => 'Пожалуйста, введите содержание урока',
-                    ]),
-                ],
+
             ])
             ->add('orderNumber', IntegerType::class, [
                 'required' => false,
-                'constraints' => [
-                    new Range([
-                        'min' => 1,
-                        'max' => 10000,
-                        'notInRangeMessage' => 'Порядковый номер должен быть между {{ min }} и {{ max }}',
-                    ]),
-                ],
+
             ])
             ->add('course', HiddenType::class, [
                 'data' => $options['course'] ? $options['course']->getId() : null,
                 'mapped' => false,
-                'constraints' => $options['require_course'] ? [
-//                    new NotNull([
-//                        'message' => 'Курс не указан',
-//                    ]),
-                ] : [],
+
             ])
 
         ;

@@ -1,14 +1,20 @@
 <?php
 namespace App\Service;
+use App\Dto\CourseDto;
 use App\Exception\BillingUnavailableException;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 class BillingClient
 {
     private string $billingUrl;
+    private NormalizerInterface $normalizer;
     public function __construct(
         string $billingUrl,
+        NormalizerInterface $normalizer,
     )
     {
         $this->billingUrl = $billingUrl;
+        $this->normalizer = $normalizer;
     }
 
     /**
@@ -50,6 +56,10 @@ class BillingClient
         curl_close($curl);
         return json_decode($response, true);
     }
+
+    /**
+     * @throws BillingUnavailableException
+     */
     public function auth(array $data): array
     {
         return $this->request(
@@ -59,6 +69,9 @@ class BillingClient
         );
     }
 
+    /**
+     * @throws BillingUnavailableException
+     */
     public function register(array $data): array
     {
         return $this->request(
@@ -68,6 +81,9 @@ class BillingClient
         );
     }
 
+    /**
+     * @throws BillingUnavailableException
+     */
     public function getCurrentUser(string $token): array
     {
         return $this->request(
@@ -76,6 +92,9 @@ class BillingClient
         );
     }
 
+    /**
+     * @throws BillingUnavailableException
+     */
     public function refreshToken(string $refreshToken): array
     {
         return $this->request(
@@ -86,15 +105,22 @@ class BillingClient
             ],
         );
     }
-    public function getCourses(): array
-    {
-        return $this->request(
-            //method: 'GET',
-            url: '/api/v1/courses'
-        );
-    }
+
+    /**
+     * @throws BillingUnavailableException
+     */
+//    public function getCourses(): array
+//    {
+//        return $this->request(
+//            //method: 'GET',
+//            url: '/api/v1/courses'
+//        );
+//    }
 
 
+    /**
+     * @throws BillingUnavailableException
+     */
     public function getCourse(string $code): array
     {
         return $this->request(
@@ -104,6 +130,9 @@ class BillingClient
     }
 
 
+    /**
+     * @throws BillingUnavailableException
+     */
     public function payCourse(string $code, string $token): array
     {
         return $this->request(
@@ -114,6 +143,9 @@ class BillingClient
     }
 
 
+    /**
+     * @throws BillingUnavailableException
+     */
     public function getTransactions(string $token, array $filters = []): array
     {
         $queryParams = [];
@@ -128,6 +160,38 @@ class BillingClient
             //method: 'GET',
             url: '/api/v1/transactions' . $queryString,
             token: $token
+        );
+    }
+
+    /**
+     * @throws ExceptionInterface
+     * @throws BillingUnavailableException
+     */
+    public function newCourse(string $token, CourseDto $course): array
+    {
+        $data = $this->normalizer->normalize($course, 'json');
+        unset($data['description']);
+        return $this->request(
+            method: 'POST',
+            url: '/api/v1/courses/',
+            data: $data,
+            token: $token,
+        );
+    }
+
+    /**
+     * @throws ExceptionInterface
+     * @throws BillingUnavailableException
+     */
+    public function editCourse(string $token, string $code, CourseDto $course): array
+    {
+        $data = $this->normalizer->normalize($course, 'json');
+        unset($data['description']);
+        return $this->request(
+            method: 'POST',
+            url: "/api/v1/courses/$code",
+            data: $data,
+            token: $token,
         );
     }
 }

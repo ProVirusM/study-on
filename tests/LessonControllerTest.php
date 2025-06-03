@@ -37,11 +37,18 @@ class LessonControllerTest extends WebTestCase
 
         $this->client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
         $this->client->getContainer()->set('App\Service\JwtTokenManager', new \App\Tests\Mock\FakeJwtTokenManager());
-        $user = new User();
-        $user->setEmail('test@example.com')
-            ->setApiToken('valid-token')
-            ->setRoles(['ROLE_SUPER_ADMIN']);
-        $this->client->loginUser($user);
+        $this->client->disableReboot();
+
+
+        $crawler = $this->client->request('GET', '/login');
+
+        $form = $crawler->selectButton('Sign in')->form([
+            'email' => 'admin@example.com',
+            'password' => 'adminpass',
+
+        ]);
+
+        $this->client->submit($form);
         ///////////////////////////
 
 

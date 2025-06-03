@@ -15,6 +15,16 @@ class CourseRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Course::class);
     }
+    public function persistAndFlush(Course $course): bool
+    {
+        try {
+            $this->getEntityManager()->persist($course);
+            $this->getEntityManager()->flush();
+        } catch (\Exception $exception) {
+            return false;
+        }
+        return true;
+    }
 
 //    /**
 //     * @return Course[] Returns an array of Course objects
