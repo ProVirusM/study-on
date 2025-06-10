@@ -7,6 +7,7 @@ use App\Entity\Course;
 use App\Exception\BillingUnavailableException;
 use App\Exception\CourseException;
 use App\Exception\CourseValidationException;
+use App\Exception\IsExistsCourseException;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
 use App\Service\BillingClient;
@@ -49,12 +50,13 @@ final class CourseController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $course = new CourseDto();
-
         $user = $this->getUser();
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid() && $user !== null) {
+            $result = false; // Инициализируем переменную
+
             try {
                 $result = $this->courseService->newCourse($course, $user);
                 if (!$result) {
@@ -62,9 +64,11 @@ final class CourseController extends AbstractController
                 }
             } catch (\Exception $exception) {
                 $this->processException($exception, $form);
-                $result = false;
             } catch (ExceptionInterface $e) {
+                // Обрабатываем ошибки биллинга
+                $form->addError(new FormError($e->getMessage()));
             }
+
             if (!$result) {
                 return $this->render('course/new.html.twig', [
                     'course' => $course,
@@ -200,6 +204,12 @@ final class CourseController extends AbstractController
                 $form->get($error['property'])->addError(new FormError($error['message']));
             }
             return;
+        }
+        if ($exception instanceof IsExistsCourseException) {
+            if ($form->has('code')) {
+                $form->get('code')->addError(new FormError($exception->getMessage()));
+                return;
+            }
         }
         $form->addError(new FormError($exception->getMessage()));
     }

@@ -170,10 +170,10 @@ class BillingClient
     public function newCourse(string $token, CourseDto $course): array
     {
         $data = $this->normalizer->normalize($course, 'json');
-        unset($data['description']);
+        //unset($data['description']);
         return $this->request(
             method: 'POST',
-            url: '/api/v1/courses/',
+            url: '/api/v1/courses',
             data: $data,
             token: $token,
         );
@@ -186,7 +186,7 @@ class BillingClient
     public function editCourse(string $token, string $code, CourseDto $course): array
     {
         $data = $this->normalizer->normalize($course, 'json');
-        unset($data['description']);
+        //unset($data['description']);
         return $this->request(
             method: 'POST',
             url: "/api/v1/courses/$code",

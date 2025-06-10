@@ -6,6 +6,7 @@ use App\Entity\Course;
 use App\Exception\BillingUnavailableException;
 use App\Exception\CourseException;
 use App\Exception\CourseValidationException;
+use App\Exception\IsExistsCourseException;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
 use App\Security\User;
@@ -45,13 +46,28 @@ class CourseService extends AbstractController
             ->setPrice($courseArray['price'] ?? null);
         return $fullCourse;
     }
+
+    /**
+     * @throws ExceptionInterface
+     * @throws BillingUnavailableException
+     * @throws \Exception
+     */
     public function newCourse(CourseDto $course, User $user): bool
     {
-        if ($course->getType() == 'free') {
-            $course->setPrice(null);
+
+
+
+        // Проверяем, что новый код не занят другим курсом
+        $existingCourse = $this->courseRepository->findOneBy(['code' => $course->getCode()]);
+        if ($existingCourse !== null) {
+            throw new IsExistsCourseException('Курс с таким кодом уже существует'); // Можно использовать свой IsExistsCourseException
         }
+
         $result = $this->billingClient->newCourse($user->getApiToken(), $course);
+        //dd($result);
         $exception = $this->checkCourse($result);
+
+
         if ($exception !== null) {
             throw $exception;
         }
@@ -69,8 +85,16 @@ class CourseService extends AbstractController
      */
     public function editCourse(string $code, CourseDto $course, User $user): bool
     {
+
         if ($course->getType() == 'free') {
             $course->setPrice(null);
+        }
+        if ($course->getCode() !== null && $course->getCode() !== $code) {
+            // Проверяем, что новый код не занят другим курсом
+            $existingCourse = $this->courseRepository->findOneBy(['code' => $course->getCode()]);
+            if ($existingCourse !== null) {
+                throw new IsExistsCourseException('Курс с таким кодом уже существует'); // Можно использовать свой IsExistsCourseException
+            }
         }
         $result = $this->billingClient->editCourse($user->getApiToken(), $code, $course);
         $exception = $this->checkCourse($result);

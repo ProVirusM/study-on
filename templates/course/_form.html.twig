@@ -1,4 +1,5 @@
 {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+{{ form_errors(form) }}
 <div class="mb-3">
     {{ form_label(form.title, null, {'label_attr': {'class': 'form-label'}}) }}
     {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
@@ -10,6 +11,28 @@
 <div class="mb-3">
     {{ form_label(form.description, null, {'label_attr': {'class': 'form-label'}}) }}
     {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 5}}) }}
+    {{ form_errors(form.description) }}
+</div>
+
+<div class="mb-3">
+    {{ form_label(form.code, null, {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.code, {'attr': {'class': 'form-control'}}) }}
+    {{ form_errors(form.code) }}
+</div>
+
+<div class="mb-3">
+    {{ form_label(form.type, null, {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.type, {'attr': {'class': 'form-select'}}) }}
+    {{ form_errors(form.type) }}
+</div>
+
+<div class="mb-3">
+    {{ form_label(form.price, null, {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.price, {'attr': {'class': 'form-control'}}) }}
+    {{ form_errors(form.price) }}
+    <div class="form-text text-muted">
+        Если курс бесплатный, то введённая цена не будет учитываться
+    </div>
 </div>
 
 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -17,4 +40,5 @@
         <i class="fas fa-save"></i> {{ button_label|default('Сохранить') }}
     </button>
 </div>
+
 {{ form_end(form) }}

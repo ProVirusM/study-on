@@ -1,17 +1,12 @@
 <?php
 
-namespace App\Tests\Mock;
+namespace App\Tests;
 
 use AllowDynamicProperties;
 use App\Repository\CourseRepository;
-use App\Security\User;
 use App\Tests\Mock\BillingClientMock;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use App\Dto\UserRegisterDto;
-use App\Form\RegistrationFormType;
-use Symfony\Component\Form\Test\TypeTestCase;
-
 
 
 #[AllowDynamicProperties] class AuthControllerTest extends WebTestCase
@@ -185,6 +180,7 @@ use Symfony\Component\Form\Test\TypeTestCase;
     public function testIndexPage(): void
     {
         $client = static::createClient();
+        $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
         //$em = self::getContainer()->get(EntityManagerInterface::class);
         //$courseRepository = self::getContainer()->get(CourseRepository::class);
         $client->request('GET', '/courses');
@@ -197,6 +193,7 @@ use Symfony\Component\Form\Test\TypeTestCase;
     public function testShowExistingCourse(): void
     {
         $client = static::createClient();
+        $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock());
         //$em = self::getContainer()->get(EntityManagerInterface::class);
         $courseRepository = self::getContainer()->get(CourseRepository::class);
         $course = $courseRepository->findOneBy(['code' => 'web-development']);

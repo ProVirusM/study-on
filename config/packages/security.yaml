@@ -38,14 +38,14 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-#        - { path: ^/login, roles: PUBLIC_ACCESS }
-#        - { path: ^/courses$, roles: PUBLIC_ACCESS }
-#        - { path: ^/courses/\d+$, roles: PUBLIC_ACCESS }
-#        - { path: ^/courses/new, roles: ROLE_SUPER_ADMIN }
-#        - { path: ^/courses/\d+/edit, roles: ROLE_SUPER_ADMIN }
-#        - { path: ^/lessons/\d+$, roles: IS_AUTHENTICATED_FULLY }
-#        - { path: ^/lessons/new, roles: ROLE_SUPER_ADMIN }
-#        - { path: ^/lessons/\d+/edit, roles: ROLE_SUPER_ADMIN }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/courses$, roles: PUBLIC_ACCESS }
+        - { path: ^/courses/\d+$, roles: PUBLIC_ACCESS }
+        - { path: ^/courses/new, roles: ROLE_SUPER_ADMIN }
+        - { path: ^/courses/\d+/edit, roles: ROLE_SUPER_ADMIN }
+        - { path: ^/lessons/\d+$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/lessons/new, roles: ROLE_SUPER_ADMIN }
+        - { path: ^/lessons/\d+/edit, roles: ROLE_SUPER_ADMIN }
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/courses/new, roles: ROLE_SUPER_ADMIN }
         - { path: ^/courses/\d+/edit, roles: ROLE_SUPER_ADMIN }

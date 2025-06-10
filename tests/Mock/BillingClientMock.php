@@ -89,6 +89,10 @@ class BillingClientMock extends BillingClient
                 'type' => 'buy',
                 'price' => '159.00'
             ],
+            'python-basics1' => [
+                'code' => 'python-basics1',
+                'type' => 'free'
+            ],
             default => throw new BillingUnavailableException('Курс не найден', 404),
         };
     }

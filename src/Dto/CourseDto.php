@@ -18,15 +18,14 @@ class CourseDto
 
     #[Assert\NotBlank(message: 'Пожалуйста, введите код курса.')]
     #[Assert\Length(max: 255, maxMessage: 'Код курса не может быть длиннее {{ limit }}')]
-    #[UniqueCourseCode]
     private ?string $code = null;
 
     #[Assert\NotBlank(message: 'Пожалуйста, введите код курса.')]
     #[Assert\Length(
         min: 3,
         max: 255,
-        minMessage: "Код курса должен содержать минимум {{ min }} символа.",
-        maxMessage: "Код курса должен содержать максимум {{ max }} символов."
+        minMessage: "Код название должен содержать минимум {{ min }} символа.",
+        maxMessage: "Код название должен содержать максимум {{ max }} символов."
     )]
     private ?string $title = null;
 
@@ -35,8 +34,8 @@ class CourseDto
     #[Assert\Length(
         min: 3,
         max: 255,
-        minMessage: "Название должно содержать минимум {{ min }} символа.",
-        maxMessage: "Название должно содержать максимум {{ max }} символов."
+        minMessage: "Описание должно содержать минимум {{ min }} символа.",
+        maxMessage: "Описание должно содержать максимум {{ max }} символов."
     )]
     private ?string $description = null;
 

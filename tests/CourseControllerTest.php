@@ -178,7 +178,7 @@ class CourseControllerTest extends WebTestCase
         $form = $crawler->selectButton('Сохранить изменения')->form([
             'course[title]' => 'Основы программирования на Python777',  // Изменяем название курса
             'course[description]' => 'Изучение базового синтаксиса и возможностей Python.', // Изменяем описание курса
-            'course[code]' => 'python-basics',
+            'course[code]' => 'python-basics1',
             'course[type]' => 'free',
             'course[price]' => 480.0,
             'course[_token]' => $crawler->filter('input[name="course[_token]"]')->attr('value'),
