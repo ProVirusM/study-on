@@ -57,14 +57,14 @@ class CourseService extends AbstractController
 
 
 
-        // Проверяем, что новый код не занят другим курсом
+
         $existingCourse = $this->courseRepository->findOneBy(['code' => $course->getCode()]);
         if ($existingCourse !== null) {
             throw new IsExistsCourseException('Курс с таким кодом уже существует'); // Можно использовать свой IsExistsCourseException
         }
 
         $result = $this->billingClient->newCourse($user->getApiToken(), $course);
-        //dd($result);
+
         $exception = $this->checkCourse($result);
 
 
@@ -90,7 +90,7 @@ class CourseService extends AbstractController
             $course->setPrice(null);
         }
         if ($course->getCode() !== null && $course->getCode() !== $code) {
-            // Проверяем, что новый код не занят другим курсом
+
             $existingCourse = $this->courseRepository->findOneBy(['code' => $course->getCode()]);
             if ($existingCourse !== null) {
                 throw new IsExistsCourseException('Курс с таким кодом уже существует'); // Можно использовать свой IsExistsCourseException
